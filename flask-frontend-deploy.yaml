@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-flask-deploy
+  labels:
+    name: frontend-flask-deploy
+    app: frontend-flask
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: frontend-flask-pod
+      app: frontend-flask
+  template:
+    metadata:
+      name: frontend-flask-pod
+      labels:
+        name: frontend-flask-pod
+        app: frontend-flask-app
+    spec:
+      containers:
+      - name: frontend-flask-app
+        image: datatrigger/unlimited-translation_frontend_flask:k8s
+        ports:
+        - containerPort: 80
