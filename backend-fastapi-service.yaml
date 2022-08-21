@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-fastapi-service
+  labels:
+    name: backend-fastapi-service
+    app: unlimited-translation-app
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    name: backend-fastapi-pod
+    app: unlimited-translation-app
