@@ -21,6 +21,6 @@ spec:
     spec:
       containers:
       - name: backend-fastapi
-        image: datatrigger/unlimited-translation_backend_fastapi
+        image: datatrigger/unlimited-translation_backend_fastapi:latest
         ports:
         - containerPort: 80
