@@ -24,3 +24,12 @@ spec:
         image: datatrigger/unlimited-translation_backend_fastapi:latest
         ports:
         - containerPort: 80
+      resources:
+        limits:
+          cpu: 3000m
+          ephemeral-storage: 6Gi
+          memory: 8Gi
+        requests:
+          cpu: 1000m
+          ephemeral-storage: 4Gi
+          memory: 6Gi
