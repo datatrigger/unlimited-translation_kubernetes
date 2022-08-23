@@ -7,10 +7,10 @@ metadata:
     name: frontend-flask-service
     app: unlimited-translation-app
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
   - port: 80
-    targetPort: 5000
+    targetPort: 80
     nodePort: 30004
   selector:
     name: frontend-flask-pod
