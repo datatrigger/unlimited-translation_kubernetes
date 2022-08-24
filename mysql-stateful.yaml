@@ -15,6 +15,11 @@ spec:
       containers:
       - name: mysql
         image: mysql:latest
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+        - name: MYSQL_DATABASE
+          value: translation
         volumeMounts:
         - mountPath: /var/lib/mysql
           name: data-volume
