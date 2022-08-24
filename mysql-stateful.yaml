@@ -29,19 +29,20 @@ spec:
       - name: mysql-initdb
         configMap:
           name: mysql-initdb-configmap
+  volumeClaimTemplates:
+  - metadata:
+      name: data-volume
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: google-storage
+      resources:
+        requests:
+          storage: 50Mi
   replicas: 2
   selector:
     matchLabels:
       name: mysql-pod
       app: unlimited-translation-app
   serviceName: mysql-headless
-volumeClaimTemplates:
-- metadata:
-    name: data-volume
-  spec:
-    accessModes:
-      - ReadWriteOnce
-    storageClassName: google-storage
-    resources:
-      requests:
-        storage: 50Mi
+    
