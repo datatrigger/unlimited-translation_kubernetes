@@ -1,0 +1,172 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: google-storage
+provisioner: kubernetes.io/gce-pd
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-fastapi-deploy
+  labels:
+    name: backend-fastapi-deploy
+    app: unlimited-translation-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: backend-fastapi-pod
+      app: unlimited-translation-app
+  template:
+    metadata:
+      name: backend-fastapi-pod
+      labels:
+        name: backend-fastapi-pod
+        app: unlimited-translation-app
+    spec:
+      containers:
+      - name: backend-fastapi
+        image: datatrigger/unlimited-translation_backend_fastapi:latest
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            cpu: 3000m
+            ephemeral-storage: 6Gi
+            memory: 8Gi
+          requests:
+            cpu: 1000m
+            ephemeral-storage: 4Gi
+            memory: 6Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-fastapi-service
+  labels:
+    name: backend-fastapi-service
+    app: unlimited-translation-app
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    name: backend-fastapi-pod
+    app: unlimited-translation-app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-flask-deploy
+  labels:
+    name: frontend-flask-deploy
+    app: unlimited-translation-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: frontend-flask-pod
+      app: unlimited-translation-app
+  template:
+    metadata:
+      name: frontend-flask-pod
+      labels:
+        name: frontend-flask-pod
+        app: unlimited-translation-app
+    spec:
+      containers:
+      - name: frontend-flask
+        image: datatrigger/unlimited-translation_frontend_flask:k8s
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-flask-service
+  labels:
+    name: frontend-flask-service
+    app: unlimited-translation-app
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30004
+  selector:
+    name: frontend-flask-pod
+    app: unlimited-translation-app
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-initdb-configmap
+data:
+  initdb.sql: |
+    USE translation;
+    CREATE TABLE IF NOT EXISTS translations(id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, text_de LONGTEXT, text_en LONGTEXT);
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-stateful
+  labels:
+    name: mysql-stateful
+    app: unlimited-translation-app
+spec:
+  template:
+    metadata:
+      labels:
+        name: mysql-pod
+        app: unlimited-translation-app
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:latest
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+        - name: MYSQL_DATABASE
+          value: translation
+        - name: MYSQL_USER
+          value: frontend
+        - name: MYSQL_PASSWORD
+          value: password
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: data-volume
+        - mountPath: /docker-entrypoint-initdb.d
+          name: mysql-initdb
+      volumes:
+      - name: mysql-initdb
+        configMap:
+          name: mysql-initdb-configmap
+  volumeClaimTemplates:
+  - metadata:
+      name: data-volume
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      storageClassName: google-storage
+      resources:
+        requests:
+          storage: 50Mi
+  replicas: 2
+  selector:
+    matchLabels:
+      name: mysql-pod
+      app: unlimited-translation-app
+  serviceName: mysql-headless
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-headless
+spec:
+  ports:
+  - port: 3306
+  selector:
+    name: mysql-pod
+    app: unlimited-translation-app
+  clusterIP: None
