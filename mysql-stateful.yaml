@@ -20,6 +20,10 @@ spec:
           value: password
         - name: MYSQL_DATABASE
           value: translation
+        - name: MYSQL_USER
+          value: frontend
+        - name: MYSQL_PASSWORD
+          value: password
         volumeMounts:
         - mountPath: /var/lib/mysql
           name: data-volume
