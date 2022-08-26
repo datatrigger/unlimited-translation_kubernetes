@@ -78,6 +78,7 @@ spec:
       containers:
       - name: frontend-flask
         image: datatrigger/unlimited-translation_frontend_flask:k8s
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
 ---
