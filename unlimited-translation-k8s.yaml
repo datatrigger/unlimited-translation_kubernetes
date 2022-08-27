@@ -78,6 +78,19 @@ spec:
       containers:
       - name: frontend-flask
         image: datatrigger/unlimited-translation_frontend_flask:k8s
+        env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-db-secret
+              key: MYSQL_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-db-secret
+              key: MYSQL_PASSWORD
+        - name: DB_NAME
+          value: 'translation'
         imagePullPolicy: Always
         ports:
         - containerPort: 80
@@ -127,13 +140,22 @@ spec:
         image: mysql:latest
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: password
-        - name: MYSQL_DATABASE
-          value: translation
+          valueFrom:
+            secretKeyRef:
+              name: mysql-db-secret
+              key: MYSQL_ROOT_PASSWORD
         - name: MYSQL_USER
-          value: frontend
+          valueFrom:
+            secretKeyRef:
+              name: mysql-db-secret
+              key: MYSQL_USER
         - name: MYSQL_PASSWORD
-          value: password
+          valueFrom:
+            secretKeyRef:
+              name: mysql-db-secret
+              key: MYSQL_PASSWORD
+        - name: MYSQL_DATABASE
+          value: 'translation'
         volumeMounts:
         - mountPath: /var/lib/mysql
           name: data-volume
