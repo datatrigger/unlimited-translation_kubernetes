@@ -168,7 +168,7 @@ spec:
       resources:
         requests:
           storage: 50Mi
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       name: mysql-pod
@@ -189,19 +189,19 @@ spec:
     name: mysql-pod
     app: unlimited-translation-app
   clusterIP: None
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: mysql-read
-  labels:
-    name: mysql-read
-    app: unlimited-translation-app
-spec:
-  type: LoadBalancer
-  ports:
-  - name: mysql
-    port: 3306 # by default targetPort will be 3306 too
-  selector:
-    name: mysql-pod
-    app: unlimited-translation-app
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: mysql-read
+#   labels:
+#     name: mysql-read
+#     app: unlimited-translation-app
+# spec:
+#   type: LoadBalancer
+#   ports:
+#   - name: mysql
+#     port: 3306 # by default targetPort will be 3306 too
+#   selector:
+#     name: mysql-pod
+#     app: unlimited-translation-app
