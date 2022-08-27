@@ -1,0 +1,31 @@
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: translation-app
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: translation-ip
+  labels:
+    app: translation-app
+spec:
+  defaultBackend:
+    service:
+      name: translation-backend
+      port:
+        number: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: translation-backend
+  labels:
+    app: translation-app
+spec:
+  type: NodePort
+  selector:
+    name: frontend-flask-pod
+    app: unlimited-translation-app
+  ports:
+  - port: 80
+    targetPort: 80
+---
