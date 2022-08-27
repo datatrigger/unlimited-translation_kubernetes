@@ -100,8 +100,8 @@ spec:
   type: LoadBalancer
   ports:
   - port: 80
-    targetPort: 80
-    nodePort: 30004
+#    targetPort: 80
+#    nodePort: 30004
   selector:
     name: frontend-flask-pod
     app: unlimited-translation-app
