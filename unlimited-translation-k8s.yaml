@@ -206,12 +206,23 @@ spec:
 #     name: mysql-pod
 #     app: unlimited-translation-app
 ---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: managed-certificate
+spec:
+  domains:
+    - translation.datatrigger.org
+    - www.translation.datatrigger.org
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: translation-web
   annotations:
     kubernetes.io/ingress.global-static-ip-name: translation-ip
+    networking.gke.io/managed-certificates: managed-certificate
+    kubernetes.io/ingress.class: "gce"
   labels:
     app: translation-app
 spec:
