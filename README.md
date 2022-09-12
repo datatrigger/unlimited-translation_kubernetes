@@ -10,6 +10,8 @@ In this repo, we deploy the app on Kubernetes cluster. In [this repo](hhttps://g
 
 ## Deployment on a Kubernetes cluster
 
+Run the following commands in your Kubernetes cluster:
+
 1) Create the secrets for the database's credentials:
 
 ```
@@ -21,4 +23,6 @@ kubectl create secret generic mysql-db-secret \
 
 2) Deploy the app
 
-```kubectl create -f unlimited-translation-k8s.yaml```
+```
+kubectl create -f unlimited-translation-k8s.yaml
+```
