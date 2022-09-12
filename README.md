@@ -18,7 +18,7 @@ Run the following commands in your Kubernetes cluster:
 kubectl create secret generic mysql-db-secret \
   --from-literal=MYSQL_ROOT_PASSWORD='<root_password>' \
   --from-literal=MYSQL_USER='<user>' \
-  --from-literal=MYSQL_PASSWORD=<password>
+  --from-literal=MYSQL_PASSWORD='<password>'
 ```
 
 2) Deploy the app
