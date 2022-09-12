@@ -24,5 +24,5 @@ kubectl create secret generic mysql-db-secret \
 2) Deploy the app
 
 ```
-kubectl create -f unlimited-translation-k8s.yaml
+kubectl apply -f unlimited-translation-k8s.yaml
 ```
