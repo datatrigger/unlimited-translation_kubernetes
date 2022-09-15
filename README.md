@@ -2,7 +2,7 @@
 
 As a non-German speaker living in Switzerland, I often need to quickly translate large texts, but I get annoyed by character limits on Google Translate or DeepL. Learning German may have been a *way* better call, but instead I decided to deploy a translation application. It's made of 3 containerized microservices:
 
-* A [Flask frontend](https://github.com/datatrigger/unlimited_translation-frontend-swarm) to get inputs and display translations
+* A [Flask frontend](https://github.com/datatrigger/unlimited_translation-frontend-k8s) to get inputs and display translations
 * A [FastAPI API backend](https://github.com/datatrigger/unlimited_translation-backend) to translate English text, using open-source models (SpaCy, Hugging Face)
 * A [MySQL database](https://hub.docker.com/_/mysql) to store previous translations
 
