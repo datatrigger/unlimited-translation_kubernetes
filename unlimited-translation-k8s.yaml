@@ -1,4 +1,4 @@
-# FastAPI Backend - Deployment
+# FastAPI backend - Deployment
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -35,7 +35,7 @@ spec:
             ephemeral-storage: 4Gi
             memory: 6Gi
 
-# FastAPI Backend - Service (ClusterIP)
+# FastAPI backend - Service (ClusterIP)
 # A ClusterIP service because we just need communication within the k8s cluster (frontend <--> backend)
 ---
 apiVersion: v1
@@ -53,67 +53,6 @@ spec:
   selector:
     name: backend-fastapi-pod
     app: unlimited-translation-app
-
-# Flask frontend - Deployment
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: frontend-flask-deploy
-  labels:
-    name: frontend-flask-deploy
-    app: unlimited-translation-app
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      name: frontend-flask-pod
-      app: unlimited-translation-app
-  template:
-    metadata:
-      name: frontend-flask-pod
-      labels:
-        name: frontend-flask-pod
-        app: unlimited-translation-app
-    spec:
-      containers:
-      - name: frontend-flask
-        image: datatrigger/unlimited-translation_frontend_flask:k8s
-        env:
-        - name: DB_USER
-          valueFrom:
-            secretKeyRef:
-              name: mysql-db-secret
-              key: MYSQL_USER
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mysql-db-secret
-              key: MYSQL_PASSWORD
-        - name: DB_NAME
-          value: 'translation'
-        imagePullPolicy: Always # Since image tag is not 'latest', default value would be 'IfNotPresent', and image updates would not be pulled
-        ports:
-        - containerPort: 80
-
-# # Flask frontend - Service (LoadBalancer)
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: frontend-flask-service
-#   labels:
-#     name: frontend-flask-service
-#     app: unlimited-translation-app
-# spec:
-#   type: LoadBalancer
-#   ports:
-#   - port: 80
-#     #targetPort: 80 #not needed here: same value as `port` by default
-#     #nodePort: 30004 #not specifying `nodePort` will randomly assign a value in the appropriate range
-#   selector:
-#     name: frontend-flask-pod
-#     app: unlimited-translation-app
 
 # MySQL database - ConfigMap (dump)
 ---
@@ -205,16 +144,50 @@ spec:
     app: unlimited-translation-app
   clusterIP: None # This property defines the Service as headless
 
-# Configure access to the app from the Internet
+# Flask frontend - Deployment
 ---
-apiVersion: networking.gke.io/v1
-kind: ManagedCertificate
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: managed-certificate
+  name: frontend-flask-deploy
+  labels:
+    name: frontend-flask-deploy
+    app: unlimited-translation-app
 spec:
-  domains:
-    - translation.datatrigger.org
-    - www.translation.datatrigger.org
+  replicas: 1
+  selector:
+    matchLabels:
+      name: frontend-flask-pod
+      app: unlimited-translation-app
+  template:
+    metadata:
+      name: frontend-flask-pod
+      labels:
+        name: frontend-flask-pod
+        app: unlimited-translation-app
+    spec:
+      containers:
+      - name: frontend-flask
+        image: datatrigger/unlimited-translation_frontend_flask:k8s
+        env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-db-secret
+              key: MYSQL_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-db-secret
+              key: MYSQL_PASSWORD
+        - name: DB_NAME
+          value: 'translation'
+        imagePullPolicy: Always # Since image tag is not 'latest', default value would be 'IfNotPresent', and image updates would not be pulled
+        ports:
+        - containerPort: 80
+
+### Flask frontend - Configure access to the app from the Internet
+# 1) NodePort Service: this makes the Flask frontend pod accessible from outside the Kubernetes cluster
 ---
 apiVersion: v1
 kind: Service
@@ -230,6 +203,19 @@ spec:
   ports:
   - port: 80
     #targetPort: 80 #not needed here: same value as `port` by default
+
+# 2) Google-managed SSL certificate (necessary for HTTPS)
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: managed-certificate
+spec:
+  domains:
+    - translation.datatrigger.org
+    - www.translation.datatrigger.org
+
+# 3) Redirect unsecure connections to HTTPS connection
 ---
 apiVersion: networking.gke.io/v1beta1
 kind: FrontendConfig
@@ -239,6 +225,8 @@ spec:
   redirectToHttps:
     enabled: true
 ---
+
+# 4) Ingress
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -257,3 +245,23 @@ spec:
       port:
         number: 80
 ---
+
+# Flask frontend - Service (LoadBalancer)
+# For development only: this service gets us an IP and port to connect to our app
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: frontend-flask-service
+#   labels:
+#     name: frontend-flask-service
+#     app: unlimited-translation-app
+# spec:
+#   type: LoadBalancer
+#   ports:
+#   - port: 80
+#     #targetPort: 80 #not needed here: same value as `port` by default
+#     nodePort: 30004 #not specifying `nodePort` will randomly assign a value in the appropriate range
+#   selector:
+#     name: frontend-flask-pod
+#     app: unlimited-translation-app
