@@ -1,3 +1,4 @@
+# FastAPI Backend - Deployment
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -23,7 +24,7 @@ spec:
       - name: backend-fastapi
         image: datatrigger/unlimited-translation_backend_fastapi:latest
         ports:
-        - containerPort: 80
+        - containerPort: 80 # Not necessary but informational (https://faun.pub/should-i-configure-the-ports-in-kubernetes-deployment-c6b3817e495)
         resources:
           limits:
             cpu: 3000m
@@ -33,6 +34,9 @@ spec:
             cpu: 1000m
             ephemeral-storage: 4Gi
             memory: 6Gi
+
+# FastAPI Backend - Service (ClusterIP)
+# A ClusterIP service because we just need communication within the k8s cluster (frontend <--> backend)
 ---
 apiVersion: v1
 kind: Service
@@ -42,12 +46,15 @@ metadata:
     name: backend-fastapi-service
     app: unlimited-translation-app
 spec:
+  #type: ClusterIP #not needed since 'ClusterIP' is the default value
   ports:
   - port: 80
-    #targetPort: 80 same as port by default
+    #targetPort: 80 #not needed here: same value as `port` by default
   selector:
     name: backend-fastapi-pod
     app: unlimited-translation-app
+
+# Flask frontend - Deployment
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -85,26 +92,30 @@ spec:
               key: MYSQL_PASSWORD
         - name: DB_NAME
           value: 'translation'
-        imagePullPolicy: Always
+        imagePullPolicy: Always # Since image tag is not 'latest', default value would be 'IfNotPresent', and image updates would not be pulled
         ports:
         - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend-flask-service
-  labels:
-    name: frontend-flask-service
-    app: unlimited-translation-app
-spec:
-  type: LoadBalancer
-  ports:
-  - port: 80
-#    targetPort: 80
-#    nodePort: 30004
-  selector:
-    name: frontend-flask-pod
-    app: unlimited-translation-app
+
+# # Flask frontend - Service (LoadBalancer)
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: frontend-flask-service
+#   labels:
+#     name: frontend-flask-service
+#     app: unlimited-translation-app
+# spec:
+#   type: LoadBalancer
+#   ports:
+#   - port: 80
+#     #targetPort: 80 #not needed here: same value as `port` by default
+#     #nodePort: 30004 #not specifying `nodePort` will randomly assign a value in the appropriate range
+#   selector:
+#     name: frontend-flask-pod
+#     app: unlimited-translation-app
+
+# MySQL database - ConfigMap (dump)
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -114,6 +125,8 @@ data:
   initdb.sql: |
     USE translation;
     CREATE TABLE IF NOT EXISTS translations(id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, text_de LONGTEXT, text_en LONGTEXT);
+
+# MySQL database - StatefulSet
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -174,6 +187,8 @@ spec:
       name: mysql-pod
       app: unlimited-translation-app
   serviceName: mysql-headless
+
+# MySQL database - (headless) Service
 ---
 apiVersion: v1
 kind: Service
@@ -184,27 +199,13 @@ metadata:
     app: unlimited-translation-app
 spec:
   ports:
-  - port: 3306
+  - port: 3306 #default mysql port
   selector:
     name: mysql-pod
     app: unlimited-translation-app
-  clusterIP: None
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: mysql-read
-#   labels:
-#     name: mysql-read
-#     app: unlimited-translation-app
-# spec:
-#   type: LoadBalancer
-#   ports:
-#   - name: mysql
-#     port: 3306 # by default targetPort will be 3306 too
-#   selector:
-#     name: mysql-pod
-#     app: unlimited-translation-app
+  clusterIP: None # This property defines the Service as headless
+
+# Configure access to the app from the Internet
 ---
 apiVersion: networking.gke.io/v1
 kind: ManagedCertificate
@@ -228,7 +229,7 @@ spec:
     app: unlimited-translation-app
   ports:
   - port: 80
-    targetPort: 80
+    #targetPort: 80 #not needed here: same value as `port` by default
 ---
 apiVersion: networking.gke.io/v1beta1
 kind: FrontendConfig
