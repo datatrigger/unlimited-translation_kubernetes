@@ -29,6 +29,6 @@ kubectl create secret generic mysql-db-secret \
 kubectl apply -f unlimited-translation-k8s-dev.yaml
 ```
 
-Note 1: since the manifest used in the above command requests a ```LoadBalancer``` service and an automatically provisioned `PersistentVolume`, so it is expected to be applied on a cluster managed by a cloud provider (unless you implemented these features yourself... I used GKE).
+Note 1: the manifest used in the above command requests a ```LoadBalancer``` service and an automatically provisioned `PersistentVolume`, so it is expected to be applied on a cluster managed by a cloud provider (unless you implemented these features yourself... I used GKE).
 
 Note 2: the ```unlimited-translation-k8s.yaml``` contains an additional Ingress to publish the app on my personal domain, [translation.datatrigger.org](https://translation.datatrigger.org)
