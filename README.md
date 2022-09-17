@@ -26,5 +26,7 @@ kubectl create secret generic mysql-db-secret \
 2) Deploy the app
 
 ```
-kubectl apply -f unlimited-translation-k8s.yaml
+kubectl apply -f unlimited-translation-k8s-dev.yaml
 ```
+
+Note: the ```unlimited-translation-k8s.yaml``` contains an additional Ingress to publish the app on my personal domain, [translation.datatrigger.org](https://translation.datatrigger.org)

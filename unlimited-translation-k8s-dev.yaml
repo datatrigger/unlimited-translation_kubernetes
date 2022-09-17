@@ -1,0 +1,208 @@
+# FastAPI backend - Deployment
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-fastapi-deploy
+  labels:
+    name: backend-fastapi-deploy
+    app: unlimited-translation-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: backend-fastapi-pod
+      app: unlimited-translation-app
+  template:
+    metadata:
+      name: backend-fastapi-pod
+      labels:
+        name: backend-fastapi-pod
+        app: unlimited-translation-app
+    spec:
+      containers:
+      - name: backend-fastapi
+        image: datatrigger/unlimited-translation_backend_fastapi:latest
+        ports:
+        - containerPort: 80 # Not necessary but informational (https://faun.pub/should-i-configure-the-ports-in-kubernetes-deployment-c6b3817e495)
+        resources:
+          limits:
+            cpu: 3000m
+            ephemeral-storage: 6Gi
+            memory: 8Gi
+          requests:
+            cpu: 1000m
+            ephemeral-storage: 4Gi
+            memory: 6Gi
+
+# FastAPI backend - Service (ClusterIP)
+# A ClusterIP service because we just need communication within the k8s cluster (frontend <--> backend)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-fastapi-service
+  labels:
+    name: backend-fastapi-service
+    app: unlimited-translation-app
+spec:
+  #type: ClusterIP #not needed since 'ClusterIP' is the default value
+  ports:
+  - port: 80
+    #targetPort: 80 #not needed here: same value as `port` by default
+  selector:
+    name: backend-fastapi-pod
+    app: unlimited-translation-app
+
+# MySQL database - ConfigMap (dump)
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-initdb-configmap
+data:
+  initdb.sql: |
+    USE translation;
+    CREATE TABLE IF NOT EXISTS translations(id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, text_de LONGTEXT, text_en LONGTEXT);
+
+# MySQL database - StatefulSet
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-stateful
+  labels:
+    name: mysql-stateful
+    app: unlimited-translation-app
+spec:
+  template:
+    metadata:
+      labels:
+        name: mysql-pod
+        app: unlimited-translation-app
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:latest
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-db-secret
+              key: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-db-secret
+              key: MYSQL_USER
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-db-secret
+              key: MYSQL_PASSWORD
+        - name: MYSQL_DATABASE
+          value: 'translation'
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: data-volume
+        - mountPath: /docker-entrypoint-initdb.d
+          name: mysql-initdb
+      volumes:
+      - name: mysql-initdb
+        configMap:
+          name: mysql-initdb-configmap
+  volumeClaimTemplates:
+  - metadata:
+      name: data-volume
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 50Mi
+  replicas: 1
+  selector:
+    matchLabels:
+      name: mysql-pod
+      app: unlimited-translation-app
+  serviceName: mysql-headless
+
+# MySQL database - (headless) Service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-headless
+  labels:
+    name: mysql-headless
+    app: unlimited-translation-app
+spec:
+  ports:
+  - port: 3306 #default mysql port
+  selector:
+    name: mysql-pod
+    app: unlimited-translation-app
+  clusterIP: None # This property defines the Service as headless
+
+# Flask frontend - Deployment
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-flask-deploy
+  labels:
+    name: frontend-flask-deploy
+    app: unlimited-translation-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: frontend-flask-pod
+      app: unlimited-translation-app
+  template:
+    metadata:
+      name: frontend-flask-pod
+      labels:
+        name: frontend-flask-pod
+        app: unlimited-translation-app
+    spec:
+      containers:
+      - name: frontend-flask
+        image: datatrigger/unlimited-translation_frontend_flask:k8s
+        env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-db-secret
+              key: MYSQL_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-db-secret
+              key: MYSQL_PASSWORD
+        - name: DB_NAME
+          value: 'translation'
+        imagePullPolicy: Always # Since image tag is not 'latest', default value would be 'IfNotPresent', and image updates would not be pulled
+        ports:
+        - containerPort: 80
+
+
+# Flask frontend - Service (LoadBalancer)
+# For development only: this service gets us an IP and port to connect to our app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-flask-service
+  labels:
+    name: frontend-flask-service
+    app: unlimited-translation-app
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    #targetPort: 80 #not needed here: same value as `port` by default
+    nodePort: 30004 #not specifying `nodePort` will randomly assign a value in the appropriate range
+  selector:
+    name: frontend-flask-pod
+    app: unlimited-translation-app
