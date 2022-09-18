@@ -28,12 +28,12 @@ spec:
         resources:
           requests:
             cpu: 4000m
-            ephemeral-storage: 300Mi #for scratch space, logging or caching (GKE Autopilot default value: 1Gi)
+            ephemeral-storage: 100Mi #for scratch space, logging or caching (GKE Autopilot default value: 1Gi)
             memory: 2Gi #(GKE Autopilot default value: 2Gi)
           # GKE Autopilot only considers `requests`, see https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-resource-requests
           # limits:
           #  cpu: 8000m
-          #  #ephemeral-storage: 1Gi
+          #  #ephemeral-storage: 300Mi
           #  memory: 4Gi
 
 # FastAPI backend - Service (ClusterIP)
