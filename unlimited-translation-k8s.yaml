@@ -30,11 +30,11 @@ spec:
             cpu: 4000m
             ephemeral-storage: 100Mi #for scratch space, logging or caching (GKE Autopilot default value: 1Gi)
             memory: 2Gi #(GKE Autopilot default value: 2Gi)
-# GKE Autopilot only considers `requests`, see https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-resource-requests
-#          limits:
-#            cpu: 8000m
-#            #ephemeral-storage: 1Gi
-#            memory: 4Gi
+          # GKE Autopilot only considers `requests`, see https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-resource-requests
+          # limits:
+          #  cpu: 8000m
+          #  #ephemeral-storage: 1Gi
+          #  memory: 4Gi
 
 # FastAPI backend - Service (ClusterIP)
 # A ClusterIP service because we just need communication within the k8s cluster (frontend <--> backend)
