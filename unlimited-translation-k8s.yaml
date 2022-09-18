@@ -26,14 +26,15 @@ spec:
         ports:
         - containerPort: 80 # Not necessary but informational (https://faun.pub/should-i-configure-the-ports-in-kubernetes-deployment-c6b3817e495)
         resources:
-          limits:
-            cpu: 3000m
-            ephemeral-storage: 6Gi
-            memory: 8Gi
           requests:
-            cpu: 1000m
-            ephemeral-storage: 4Gi
-            memory: 6Gi
+            cpu: 4000m
+            ephemeral-storage: 100Mi #for scratch space, logging or caching (GKE Autopilot default value: 1Gi)
+            memory: 2Gi #(GKE Autopilot default value: 2Gi)
+# GKE Autopilot only considers `requests`, see https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-resource-requests
+#          limits:
+#            cpu: 8000m
+#            #ephemeral-storage: 1Gi
+#            memory: 4Gi
 
 # FastAPI backend - Service (ClusterIP)
 # A ClusterIP service because we just need communication within the k8s cluster (frontend <--> backend)
