@@ -213,8 +213,8 @@ metadata:
   name: managed-certificate
 spec:
   domains:
-    - translation.datatrigger.org
-    - www.translation.datatrigger.org
+    - translate.vlgdata.io
+    - www.translate.vlgdata.io
 
 # 3) Redirect unsecure connections to HTTPS connection
 ---
