@@ -8,7 +8,7 @@ As a non-German speaker living in Switzerland, I often need to quickly translate
 
 In this repo, we deploy the app on Kubernetes cluster, see also this [blog post](https://blog.vlgdata.io/post/unlimited_translation_kubernetes/).
 
-For the deployment on a single node with Docker Compose, see this [repo](https://github.com/datatrigger/unlimited-translation_docker_swarm) and this [blog post](https://www.datatrigger.org/post/unlimited_translation_deploy_with_docker_compose/).
+For the deployment on a single node with Docker Compose, see this [repo](https://github.com/datatrigger/unlimited-translation_docker_swarm) and this [blog post](https://blog.vlgdata.io/post/unlimited_translation_deploy_with_docker_compose/).
 
 ## Deployment on a Kubernetes cluster
 
