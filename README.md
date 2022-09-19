@@ -6,7 +6,7 @@ As a non-German speaker living in Switzerland, I often need to quickly translate
 * A [FastAPI API backend](https://github.com/datatrigger/unlimited_translation-backend) to translate English text, using open-source models (SpaCy, Hugging Face)
 * A [MySQL database](https://hub.docker.com/_/mysql) to store previous translations
 
-In this repo, we deploy the app on Kubernetes cluster, see also this [blog post](https://www.datatrigger.org/post/unlimited_translation_kubernetes/).
+In this repo, we deploy the app on Kubernetes cluster, see also this [blog post](https://blog.vlgdata.io/post/unlimited_translation_kubernetes/).
 
 For the deployment on a single node with Docker Compose, see this [repo](https://github.com/datatrigger/unlimited-translation_docker_swarm) and this [blog post](https://www.datatrigger.org/post/unlimited_translation_deploy_with_docker_compose/).
 
@@ -37,4 +37,4 @@ kubectl get svc -o wide
 
 *Note 1*: the manifest used in the above command requests a ```LoadBalancer``` service and an automatically provisioned `PersistentVolume`, so it is expected to be applied on a cluster managed by a cloud provider (unless you implemented these features yourself... I used GKE).
 
-*Note 2*: the ```unlimited-translation-k8s.yaml``` contains an additional Ingress to publish the app on my personal domain, [translation.datatrigger.org](https://translation.datatrigger.org)
+*Note 2*: the ```unlimited-translation-k8s.yaml``` contains an additional Ingress to publish the app on my personal domain, [translate.vlgdata.io](https://translate.vlgdata.io)
