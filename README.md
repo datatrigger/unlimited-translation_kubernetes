@@ -1,7 +1,5 @@
 # A multi container app deployed on a Kubernetes cluster 
 
-Try the app at [translate.vlgdata.io](https://translate.vlgdata.io)
-
 As a non-German speaker living in Switzerland, I often need to quickly translate large texts, but I get annoyed by character limits on Google Translate or DeepL. Learning German may have been a *way* better call, but instead I decided to deploy a translation application. It's made of 3 containerized microservices:
 
 * A [Flask frontend](https://github.com/datatrigger/unlimited_translation-frontend-k8s) to get inputs and display translations
@@ -39,4 +37,4 @@ kubectl get svc -o wide
 
 *Note 1*: the manifest used in the above command requests a ```LoadBalancer``` service and an automatically provisioned `PersistentVolume`, so it is expected to be applied on a cluster managed by a cloud provider (unless you implemented these features yourself... I used GKE).
 
-*Note 2*: the ```unlimited-translation-k8s.yaml``` contains an additional Ingress to publish the app on my personal domain, [translate.vlgdata.io](https://translate.vlgdata.io)
+*Note 2*: the ```unlimited-translation-k8s.yaml``` contains an additional Ingress to publish the app on my personal domain, translate.vlgdata.io
